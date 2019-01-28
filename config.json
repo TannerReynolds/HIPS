@@ -1,0 +1,7 @@
+{
+    "discordToken": "discord bot token",
+    "discordAdminIDs": ["your user ID here"],
+    "discordChannelID": "Channel ID",
+    "prefix": "~$",
+    "ratelimit": ratelimit in milliseconds here without quotes
+}
