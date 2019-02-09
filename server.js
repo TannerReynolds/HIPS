@@ -5,6 +5,7 @@ const bodyParser = require("body-parser")
 const c = require("./config.json")
 const Eris = require("eris")
 const bot = new Eris(c.discordToken, { maxShards: "auto", getAllUsers: true })
+const https = require("https")
 let endpoints = []
 let commands = []
 
@@ -13,19 +14,10 @@ app.use(bodyParser.text())
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-let ratelimited = new Set()
-app.use((req, res, next) => {
-  let userIP = req.headers["x-forwarded-for"] || req.connection.remoteAddress || req.socket.remoteAddress || req.connection.socket.remoteAddress
-  if(ratelimited.has(userIP)) {
-    res.statusCode = 429
-    res.write("You are being ratelimited.")
-    return res.end()
-  } else {
-    ratelimited.add(userIP)
-    setTimeout(() => ratelimited.delete(userIP), c.ratelimit)
-    next()
-  }
-})
+let privateKey = fs.readFileSync("key.pem");
+let certificate = fs.readFileSync("cert.pem");
+
+
 
 loadEndpoints(false) // Loading endpoints: False means its not a reload
 
@@ -82,9 +74,23 @@ app.get("/", (req, res) => {
   res.end()
 })
 
+let ratelimited = new Set()
+app.use((req, res, next) => {
+  let userIP = req.headers["x-forwarded-for"] || req.connection.remoteAddress || req.socket.remoteAddress || req.connection.socket.remoteAddress
+  if(ratelimited.has(userIP)) {
+    res.statusCode = 429
+    res.write("You are being ratelimited.")
+    return res.end()
+  } else {
+    ratelimited.add(userIP)
+    setTimeout(() => ratelimited.delete(userIP), c.ratelimit)
+    next()
+  }
+})
 
-app.get("/canvas", async (req, res) => {
-  // Example: http://api.qoilo.com/canvas?effect=ajit&url=http://qoilo.com/yf0pjk
+
+app.get("/imgen", async (req, res) => {
+  // Example: http://api.qoilo.com/imgen?effect=ajit&url=http://qoilo.com/yf0pjk
   let param = req.query.url // ?url=image url
   let endpoint = req.query.effect // ?effect=effect to be applied to given image
   if(!endpoint) {
@@ -98,6 +104,15 @@ app.get("/canvas", async (req, res) => {
         await e.process(req, res, param, endpoint)
       }
     }
+})
+
+app.get("/printer", async (req, res) => {
+  let param = req.query.url // ?url=image url
+  for(const e of endpoints) {
+    if(e.endpoint === "printer") {
+      await e.process(req, res, param)
+    }
+  }
 })
 
 function loadEndpoints(reload) {
@@ -137,9 +152,10 @@ app.listen(80, () => {
     bot.connect()
   }
 })
-app.listen(443, () => {
-  console.log("API listening on port 443")
-})
+https.createServer({
+  key: privateKey,
+  cert: certificate
+}, app).listen(443);
 
 process.on("unhandledRejection", e => console.log(`unhandledRejection\n${e}`) )
 process.on("uncaughtException", e => console.log(`uncaughtException\n${e}`) )
