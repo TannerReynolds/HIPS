@@ -1,7 +1,7 @@
 {
-    "discordToken": "discord bot token",
-    "discordAdminIDs": ["your user ID here"],
-    "discordChannelID": "Channel ID",
+    "discordToken": "NTM5Mjk3NjU5NDY3NDY0NzA4.DzATmQ.dWcWH1e2DSWguKhGSBL06lLQeUM",
+    "discordAdminIDs": ["205912295837138944"],
+    "discordChannelID": "437575182706802689",
     "prefix": "~$",
-    "ratelimit": ratelimit in milliseconds here without quotes
+    "ratelimit": 100
 }

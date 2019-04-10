@@ -13,6 +13,10 @@ let commands = []
 app.use(bodyParser.text())
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(function (req, res, next) {
+  res.setHeader("X-Powered-By", "Qoilo API")
+  next()
+})
 
 let privateKey = fs.readFileSync("key.pem");
 let certificate = fs.readFileSync("cert.pem");
@@ -67,10 +71,14 @@ if(c.discordToken && c.discordToken !== undefined && c.discrdToken !== null) { /
   console.log("No Discord Token provided...\nContinuing without Discord connection...") // API will still run without a discord token
 }
 
+app.use(express.static("./pages/", {
+  extensions: [ "html", "css", "js" ],
+}))
+
 // INDEX
 app.get("/", (req, res) => {
   res.setHeader("Content-Type", "text/html")
-  res.write("Havana Image Processing API") // Displays main page
+  res.write(fs.readFileSync("./pages/index.html"))
   res.end()
 })
 
@@ -101,6 +109,7 @@ app.get("/imgen", async (req, res) => {
   }
     for(const e of endpoints) {
       if(e.endpoint === endpoint) {
+        res.statusCode = 200
         await e.process(req, res, param, endpoint)
       }
     }

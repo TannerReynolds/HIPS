@@ -15,6 +15,7 @@ module.exports = {
           .addImage(ajit, 0, 0, 732, 568)
           .toBuffer();
           res.send(image);
+          console.log(typeof(image))
           return res.end(); 
         })
     }
